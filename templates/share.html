@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<!--
+author:guojunyu
+date:2019-05-21
+desc:this demo is about blog. PLEASE NOTE:If you have trouble running it ,try any of the other demos or connect with auther.
+A ny individuals and organizations and not for commercial use, professiona website for customized web site.
+-->
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="images/bitbug_favicon.ico" type="image/x-icon" />
+    <link href="/static/css/base.css" rel="stylesheet">
+    <link href="/static/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/comments.css">
+    <link href="/static/css/m.css" rel="stylesheet">
+    <script src="/static/js/jquery.min.js" type="text/javascript"></script>
+    <script src="/static/js/jquery.easyfader.min.js"></script>
+    <script src="/static/js/wangEditor.js"></script>
+    <!--[if lt IE 9]>
+	<script src="js/modernizr.js"></script>
+	<![endif]-->
+    <script src="/static/js/common.js"></script>
+    <script src="/static/js/scrollReveal.js"></script>
+</head>
+
+<body>
+</body>
+
+<script>
+    token = window.localStorage.getItem('dnblog_token');
+    //登陆的用户名
+    username = window.localStorage.getItem('dnblog_user');
+    var html_body = ''
+    $.ajax({
+        // 请求方式
+        type: "get",
+        // url
+        url: "http://127.0.0.1:8000/v1/users/" + username,
+        async: false,
+        beforeSend: function(request) {
+            request.setRequestHeader("Authorization", token);
+        },
+        success: function(result) {
+            if (200 == result.code) {
+                //alert("请求成功")
+                //console.log(result)
+                $(document).attr('title', '发布美食-' + result.data.nickname + '的美食');
+                //登陆和访问用户相等
+                header_html = makeTop(username, username)
+                html_body += header_html
+                html_body += '<div class="container">'
+                html_body += '<div class="pagebg re"></div>'
+                html_body += '<div class="container">'
+                html_body += '<h1 class="t_nav"><span>舌尖上的中国，移动的中餐厅，中国的美食文化。</span>'
+                html_body += '<p></p>';
+                html_body += '<ul class="left-form">';
+                html_body += '<li>';
+                html_body += '<form action=""  method="post" enctype="multipart/form-data" class="image_form">';
+                //image
+                if (result.data.image) {
+                    var image_url = 'http://127.0.0.1:8000/media/' + result.data.image;
+                    html_body += '<p class="image"> <img src=' + image_url + ' alt=""> </p>';
+                } else {
+                    html_body += '<p class="image"> <img src="/static/images/image.jpg" alt=""> </p>';
+                }
+                html_body += '<p>';
+
+                html_body += '<label for="image">上传美食</label>&nbsp;';
+                html_body += '&nbsp;<input type="file" name="image" id="image">';
+                html_body += '</br>'
+                html_body += '</br>'
+                html_body += '<input id="submit-btn" type="button" value="上传" onclick="upload()">';
+                html_body += '</p>';
+                html_body += '</form>';
+                html_body += '</li>';
+
+                html_body += '<p class="n1">发布美食</p>'
+                html_body += '</h1>'
+                html_body += '<div class="infosbox">'
+                html_body += '<br>'
+                html_body += '<p>'
+                html_body += '<input class="comment_input" id="author" maxlength="50" name="author" required="required" size="25" tabindex="1" type="text">'
+                html_body += '<label for="author">文章标题</label>'
+                html_body += '</p>'
+                html_body += '<br>'
+                html_body += '<label style="float:left;display:inline-block">美食地址 </label>'
+                html_body += '<div class="clear"> </div>';
+                html_body += '<li>';
+                if (result.data.location) {
+                    html_body += '<input type="text" class="location" name="location" placeholder="请输入美食地址" required  value="' + result.data.location + '"' + '/>';
+                } else {
+                    html_body += '<input type="text" class="location" name="location" placeholder="请输入美食地址" required  value=""/>';
+                }
+                html_body += '<div class="clear"> </div>';
+                html_body += '</li>';
+
+                html_body += '<form>'
+
+                html_body += '<div id="editor" style="margin-left: 12px;margin-right: 12px"></div>'
+                html_body += '<br>'
+                html_body += '<p>'
+                html_body += '<input id="id_article" name="article" type="hidden" value="1">'
+                html_body += '<input name="button" type="button" id="button" tabindex="5" value="提交" class="button" />'
+                html_body += '</p>'
+                html_body += '</form>'
+                html_body += '<br>'
+
+                html_body += '</div>'
+                html_body += '<footer id="footer">'
+                html_body += '<p>Delocation by <a href=# target="_blank">'
+                html_body += result.data.nickname
+                html_body += '</a>'
+                html_body += '</footer>'
+                $('body').html(html_body)
+                    //初始化登出
+                loginOut()
+                var E = window.wangEditor
+                editor = new E('#editor')
+                    // 或者 var editor = new E( document.getElementById('editor') )
+                editor.create()
+                $('#button').on('click', function() {
+
+                    var content = editor.txt.html()
+                    var content_text = editor.txt.text()
+                    var title = $('.comment_input').val()
+                    var location = $('.location').val()
+                    var post_data = {
+                        'content': content,
+                        'content_text': content_text,
+                        'title': title,
+                        'location': location
+                    }
+
+                    $.ajax({
+                        // 请求方式
+                        type: "post",
+                        // contentType 
+                        contentType: "application/json",
+                        // dataType
+                        dataType: "json",
+                        // url
+                        url: "http://127.0.0.1:8000/v1/foods/" + username,
+                        // 把JS的对象或数组序列化一个json 字符串
+                        data: JSON.stringify(post_data),
+                        // result 为请求的返回结果对象
+                        beforeSend: function(request) {
+                            request.setRequestHeader("Authorization", token);
+                        },
+                        success: function(result) {
+                            if (200 == result.code) {
+                                alert("发布成功")
+                                window.location.href = '/' + username + '/foods'
+                            } else {
+                                alert(result.error)
+                            }
+                        }
+                    })
+                })
+
+            } else {
+
+                alert(result.error)
+            }
+        }
+    });
+
+    function upload() {
+        var token = window.localStorage.getItem('dnblog_token')
+        var username = window.localStorage.getItem('dnblog_user')
+            //$('.image_form').attr('action', 'http://127.0.0.1/foods/image')
+        var url = 'http://127.0.0.1:8000/v1/foods/' + username + '/image'
+        formdata = new FormData();
+        formdata.append("image", $("#image")[0].files[0]);
+        $.ajax({
+            processData: false,
+            contentType: false,
+            url: url,
+            type: 'post',
+            data: formdata,
+            beforeSend: function(request) {
+                request.setRequestHeader("Authorization", token);
+            },
+            success: function(arg) {
+                if (arg.code == 200) {
+                    alert('成功！')
+                    window.location.reload()
+                } else {
+                    alert('失败！')
+                }
+            }
+        })
+
+    }
+</script>
+
+</html>
