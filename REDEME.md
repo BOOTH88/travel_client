@@ -5,7 +5,7 @@ desc:this demo is about blog. PLEASE NOTE:If you have trouble running it ,try an
 A ny individuals and organizations and not for commercial use, professiona website for customized web site.
 -->
 
-link: 127.0.0.1:5000username/foods
+link: 127.0.0.1:5000/username/foods
 
-link: 127.0.0.1:5000username/food/share
+link: 127.0.0.1:5000/username/food/share
 
